@@ -13,6 +13,10 @@ impl Random {
         self.state
     }
 
+    pub fn next_f32(&mut self) -> f32 {
+        (self.next_u64() as f64 / u64::MAX as f64) as f32
+    }
+
     pub fn index(&mut self, upper: usize) -> usize {
         debug_assert!(upper > 0);
         (self.next_u64() as usize) % upper

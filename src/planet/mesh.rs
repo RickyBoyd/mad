@@ -12,12 +12,19 @@ use crate::planet::resources::TerrainSettings;
 const DETAIL_NOISE_OCTAVES: usize = 3;
 const DETAIL_NOISE_LACUNARITY: f32 = 2.1;
 const DETAIL_NOISE_PERSISTENCE: f32 = 0.5;
+const SURFACE_NOISE_SEED_XOR: u64 = 0x52F6_5A2D_9C3B_6E17;
 
 #[derive(Debug, Clone, Copy)]
 struct SurfaceVertex {
     position: [f32; 3],
     normal: [f32; 3],
     color: [f32; 4],
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct SurfaceFrame {
+    pub position: Vec3,
+    pub up: Vec3,
 }
 
 pub fn tile_field_to_mesh(
@@ -33,7 +40,7 @@ pub fn tile_field_to_mesh(
     let indices_per_patch = patch_resolution * patch_resolution * 3;
     let total_vertices = patch_count * vertices_per_patch;
     let total_indices = patch_count * indices_per_patch;
-    let noise_seed = seed ^ 0x52F6_5A2D_9C3B_6E17;
+    let noise_seed = surface_noise_seed(seed);
 
     let mut positions = Vec::<[f32; 3]>::with_capacity(total_vertices);
     let mut normals = Vec::<[f32; 3]>::with_capacity(total_vertices);
@@ -57,6 +64,30 @@ pub fn tile_field_to_mesh(
     }
 
     build_mesh(positions, normals, colors, indices)
+}
+
+pub fn sample_surface_frame(
+    direction: Vec3,
+    base_radius: f32,
+    terrain_settings: TerrainSettings,
+    seed: u64,
+    lift: f32,
+) -> SurfaceFrame {
+    let direction = direction.normalize_or_zero();
+    let noise_seed = surface_noise_seed(seed);
+    let sample = sample_terrain(direction, terrain_settings, noise_seed);
+
+    SurfaceFrame {
+        position: sample_surface_position(
+            direction,
+            sample,
+            base_radius,
+            lift,
+            terrain_settings,
+            noise_seed,
+        ),
+        up: direction,
+    }
 }
 
 fn build_mesh(
@@ -464,4 +495,8 @@ fn plate_color(seed: u64, plate_id: usize, is_pentagon: bool) -> Color {
     };
 
     Color::hsl(hue, saturation.min(1.0), lightness.min(1.0))
+}
+
+fn surface_noise_seed(seed: u64) -> u64 {
+    seed ^ SURFACE_NOISE_SEED_XOR
 }

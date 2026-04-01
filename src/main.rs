@@ -1,6 +1,7 @@
 mod camera;
 mod game;
 mod planet;
+mod units;
 
 use bevy::prelude::*;
 use game::GamePlugin;
