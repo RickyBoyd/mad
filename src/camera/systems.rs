@@ -1,10 +1,16 @@
+use std::f32::consts::TAU;
+
 use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
 use bevy::prelude::*;
 
-use crate::camera::components::{MainCamera, OrbitCamera};
-use crate::camera::resources::OrbitCameraSettings;
+use crate::camera::components::{MainCamera, OrbitCamera, OrbitingSun};
+use crate::camera::resources::{OrbitCameraSettings, SunOrbitSettings};
 
-pub fn setup_scene(mut commands: Commands, camera_settings: Res<OrbitCameraSettings>) {
+pub fn setup_scene(
+    mut commands: Commands,
+    camera_settings: Res<OrbitCameraSettings>,
+    sun_settings: Res<SunOrbitSettings>,
+) {
     let orbit_camera = OrbitCamera::new(camera_settings.focus, camera_settings.initial_position);
 
     commands.spawn((
@@ -15,13 +21,17 @@ pub fn setup_scene(mut commands: Commands, camera_settings: Res<OrbitCameraSetti
         orbit_camera,
     ));
 
+    let sun_position = sun_position(*sun_settings, sun_settings.initial_angle);
     commands.spawn((
+        OrbitingSun {
+            angle: sun_settings.initial_angle,
+        },
         DirectionalLight {
             illuminance: 20_000.0,
             shadows_enabled: true,
             ..default()
         },
-        Transform::from_rotation(Quat::from_euler(EulerRot::XYZ, -1.0, -0.8, 0.0)),
+        Transform::from_translation(sun_position).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
 
@@ -77,4 +87,27 @@ pub fn orbit_camera_controls(
 
     transform.translation = camera.translation();
     transform.look_at(camera.focus, Vec3::Y);
+}
+
+pub fn orbit_directional_light(
+    mut sun: Single<(&mut OrbitingSun, &mut Transform), With<DirectionalLight>>,
+    sun_settings: Res<SunOrbitSettings>,
+    time: Res<Time>,
+) {
+    let (sun, transform) = &mut *sun;
+
+    sun.angle = (sun.angle + TAU * time.delta_secs() / sun_settings.period_seconds).rem_euclid(TAU);
+    let position = sun_position(*sun_settings, sun.angle);
+    transform.translation = position;
+    transform.look_at(Vec3::ZERO, Vec3::Y);
+}
+
+fn sun_position(settings: SunOrbitSettings, angle: f32) -> Vec3 {
+    let orbit = Vec3::new(
+        settings.orbit_radius * angle.cos(),
+        0.0,
+        settings.orbit_radius * angle.sin(),
+    );
+
+    Quat::from_rotation_x(settings.tilt) * orbit
 }

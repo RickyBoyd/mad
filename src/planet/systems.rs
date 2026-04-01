@@ -5,12 +5,13 @@ use crate::planet::assets::build_planet_assets;
 use crate::planet::components::{PlanetBase, PlanetTiles};
 use crate::planet::generation::{build_icosphere, build_plates, build_tile_neighbors, build_tiles};
 use crate::planet::mesh::tile_field_to_mesh;
-use crate::planet::resources::{PlanetSettings, PlateGrowthSettings, WorldSeed};
+use crate::planet::resources::{PlanetSettings, PlateGrowthSettings, TerrainSettings, WorldSeed};
 
 pub fn setup_planet(
     mut commands: Commands,
     planet_settings: Res<PlanetSettings>,
     growth_settings: Res<PlateGrowthSettings>,
+    terrain_settings: Res<TerrainSettings>,
     world_seed: Res<WorldSeed>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -26,6 +27,13 @@ pub fn setup_planet(
         world_seed.0,
     );
     let planet_assets = build_planet_assets(&mut materials);
+    let tile_mesh = tile_field_to_mesh(
+        &tiles,
+        &plate_ids,
+        *terrain_settings,
+        world_seed.0,
+        planet_settings.tile_lift,
+    );
 
     commands.spawn((
         PlanetBase,
@@ -38,12 +46,7 @@ pub fn setup_planet(
 
     commands.spawn((
         PlanetTiles,
-        Mesh3d(meshes.add(tile_field_to_mesh(
-            &tiles,
-            &plate_ids,
-            world_seed.0,
-            planet_settings.tile_lift,
-        ))),
+        Mesh3d(meshes.add(tile_mesh)),
         MeshMaterial3d(planet_assets.tile_field_material),
         Transform::default(),
     ));

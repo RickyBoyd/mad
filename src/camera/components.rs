@@ -4,6 +4,11 @@ use bevy::prelude::*;
 pub struct MainCamera;
 
 #[derive(Component, Debug)]
+pub struct OrbitingSun {
+    pub angle: f32,
+}
+
+#[derive(Component, Debug)]
 pub struct OrbitCamera {
     pub focus: Vec3,
     pub radius: f32,

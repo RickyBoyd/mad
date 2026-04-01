@@ -14,7 +14,7 @@ impl Default for PlanetSettings {
     fn default() -> Self {
         Self {
             radius: 6.0,
-            subdivisions: 8,
+            subdivisions: 5,
             plate_count: 13,
             tile_lift: 0.03,
         }
@@ -32,6 +32,39 @@ impl Default for PlateGrowthSettings {
         Self {
             batch_min: 3,
             batch_variation: 4,
+        }
+    }
+}
+
+#[derive(Resource, Debug, Clone, Copy)]
+pub struct TerrainSettings {
+    pub noise_frequency: f32,
+    pub noise_octaves: usize,
+    pub noise_lacunarity: f32,
+    pub noise_persistence: f32,
+    pub height_scale: f32,
+    pub water_height: f32,
+    pub surface_patch_resolution: usize,
+    pub normal_sample_angle: f32,
+    pub surface_detail_frequency: f32,
+    pub surface_detail_radial_amplitude: f32,
+    pub surface_detail_tangent_amplitude: f32,
+}
+
+impl Default for TerrainSettings {
+    fn default() -> Self {
+        Self {
+            noise_frequency: 1.8,
+            noise_octaves: 5,
+            noise_lacunarity: 2.0,
+            noise_persistence: 0.5,
+            height_scale: 0.8,
+            water_height: 0.0,
+            surface_patch_resolution: 6,
+            normal_sample_angle: 0.01,
+            surface_detail_frequency: 18.0,
+            surface_detail_radial_amplitude: 0.035,
+            surface_detail_tangent_amplitude: 0.02,
         }
     }
 }

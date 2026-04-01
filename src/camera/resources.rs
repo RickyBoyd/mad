@@ -36,3 +36,22 @@ impl Default for OrbitCameraSettings {
         }
     }
 }
+
+#[derive(Resource, Debug, Clone, Copy)]
+pub struct SunOrbitSettings {
+    pub orbit_radius: f32,
+    pub tilt: f32,
+    pub period_seconds: f32,
+    pub initial_angle: f32,
+}
+
+impl Default for SunOrbitSettings {
+    fn default() -> Self {
+        Self {
+            orbit_radius: 30.0,
+            tilt: 0.55,
+            period_seconds: 120.0,
+            initial_angle: -0.8,
+        }
+    }
+}
